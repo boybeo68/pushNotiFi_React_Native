@@ -1,8 +1,17 @@
 import React from 'react';
-import {StyleSheet, Text, View, TouchableOpacity, TextInput, KeyboardAvoidingView, Dimensions, StatusBar} from 'react-native';
+import {
+    StyleSheet,
+    Text,
+    View,
+    TouchableOpacity,
+    TextInput,
+    KeyboardAvoidingView,
+    Dimensions,
+    StatusBar
+} from 'react-native';
 import {Permissions, Notifications} from 'expo';
 
-const {width,height}=Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 export default class App extends React.Component {
     constructor(props) {
         super(props);
@@ -11,14 +20,14 @@ export default class App extends React.Component {
             title: '',
             body: '',
             notifi: null,
+            localNotificationId: 0
         };
     }
 
+
     componentDidMount() {
         this.registerForPushNotifications();
-        this.sendNotifiSchedule();
     }
-
 
     async registerForPushNotifications() {
         const {status} = await Permissions.getAsync(Permissions.NOTIFICATIONS);
@@ -31,7 +40,7 @@ export default class App extends React.Component {
         }
 
         const token = await Notifications.getExpoPushTokenAsync();
-        console.log(token);
+        //console.log(token);
 
         this.subscription = Notifications.addListener(this.handleNotification);
 
@@ -39,6 +48,8 @@ export default class App extends React.Component {
             token,
         });
     };
+
+
     handleNotification = notifi => {
         console.log(notifi);
         this.setState({
@@ -47,64 +58,115 @@ export default class App extends React.Component {
     };
 // todo push notifi từ server Expo
     senNotifi = (token = this.state.token, title = this.state.title, body = this.state.body) => {
-        return fetch('https://exp.host/--/api/v2/push/send',{
+        return fetch('https://exp.host/--/api/v2/push/send', {
             body: JSON.stringify({
-                to:token,
-                title:title,
-                body:body,
-                data: {name : "Tùng béo đã gửi thành công"}
+                to: token,
+                title: title,
+                body: body,
+                data: {name: "Tùng béo đã gửi thành công"}
             }),
             headers: {
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
-            method :'POST'
+            method: 'POST'
         })
     };
     // todo push notifi nocal ngay lập tức
-    sendNotiLocal = () =>{
+    sendNotiLocal = () => {
         Expo.Notifications.presentLocalNotificationAsync({
-            title:'dữ liệu local title',
-            body:'dữ liệu local body',
-            data: {name : "Tùng béo đã gửi thành công từ local"}
+            title: 'dữ liệu local title buổi chiều',
+            body: 'dữ liệu local body buổi chiều',
+            data: {name: "Tùng béo đã gửi thành công từ local"}
         })
     };
     // todo push notifi local sau 1 khoảng thời gian
     sendNotifiSchedule = () => {
         Notifications.scheduleLocalNotificationAsync({
-            title:'Thông báo ăn cơm',
-            body:'Đến giờ ăn cơm trưa rồi anh ơi',
-            data: {name : "Tùng béo đã gửi thành công từ local"}
-        },{time:(new Date()).getTime() + (1000*60*37), repeat:'day' }).then(data=>{
+            title: 'Thông báo ăn cơm',
+            body: 'Đến giờ ăn cơm trưa rồi anh ơi',
+            data: {name: "Tùng béo đã gửi thành công từ local"}
+        }, {time: (new Date()).getTime() + (1000 * 60 * 37), repeat: 'day'}).then(data => {
             console.log(data)
         })
     };
+    dismissAllNoTi = () => {
+        Expo.Notifications.dismissAllNotificationsAsync()
+        //Expo.Notifications.cancelAllScheduledNotificationsAsync()
+    };
+    cancelNoti = () => {
+        Expo.Notifications.cancelAllScheduledNotificationsAsync()
+    };
+    deleteNotiID = (localNotificationId) => {
+        Expo.Notifications.dismissNotificationAsync(localNotificationId)
+    };
+
 
     render() {
         return (
             <KeyboardAvoidingView behavior="position" style={styles.container}>
                 <StatusBar barStyle='dark-content'/>
-                <TextInput style={styles.textInput} placeholder='input title' value={this.state.title} onChangeText={title => {
-                    this.setState({title})
+                <TextInput style={styles.textInput} placeholder='input title' value={this.state.title}
+                           onChangeText={title => {
+                               this.setState({title})
+                           }}/>
+                <TextInput style={styles.textInput} placeholder='input body' value={this.state.body}
+                           onChangeText={body => {
+                               this.setState({body})
+                           }}/>
+                <TextInput style={styles.textInput} placeholder='input id delete' onChangeText={localNotificationId => {
+                    this.setState({localNotificationId})
                 }}/>
-                <TextInput style={styles.textInput} placeholder='input body' value={this.state.body} onChangeText={body => {
-                    this.setState({body})
-                }}/>
+                <TouchableOpacity onPress={() => {
+                    this.dismissAllNoTi()
+                }}>
+                    <View style={styles.buttonStyle}>
+                        <Text style={{color: '#fff'}}>dissmiss all</Text>
+                    </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => {
+                    this.senNotifi()
+                }}>
+                    <View style={styles.buttonStyle}>
+                        <Text style={{color: '#fff'}}>Send Expo</Text>
+                    </View>
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => {
                     this.sendNotiLocal()
                 }}>
                     <View style={styles.buttonStyle}>
-                        <Text style={{color:'#fff'}}>Send Notif</Text>
+                        <Text style={{color: '#fff'}}>Send Notif local</Text>
                     </View>
                 </TouchableOpacity>
-                { this.state.notifi ? (
+                <TouchableOpacity onPress={() => {
+                    this.sendNotifiSchedule()
+                }}>
+                    <View style={styles.buttonStyle}>
+                        <Text style={{color: '#fff'}}>Send Notif sechedule</Text>
+                    </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => {
+                    this.cancelNoti()
+                }}>
+                    <View style={styles.buttonStyle}>
+                        <Text style={{color: '#fff'}}>Cancel Notif local</Text>
+                    </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => {
+                    this.deleteNotiID(this.state.localNotificationId)
+                }}>
+                    <View style={styles.buttonStyle}>
+                        <Text style={{color: '#fff'}}>dismiss Notif id</Text>
+                    </View>
+                </TouchableOpacity>
+                {this.state.notifi ? (
                     <View>
-                        <Text style={{padding:10, fontSize:17}}>Last Notification:</Text>
+                        <Text style={{padding: 10, fontSize: 17}}>Last Notification:</Text>
                         <Text>{this.state.notifi.data.name}</Text>
                         <Text>{this.state.notifi.body}</Text>
                         <Text>{this.state.notifi.title}</Text>
                     </View>
-                ): null}
+                ) : null}
             </KeyboardAvoidingView>
         );
     }
@@ -112,21 +174,21 @@ export default class App extends React.Component {
 
 const styles = StyleSheet.create({
     container: {
-        marginTop:100,
+        marginTop: 100,
         backgroundColor: '#fff',
         justifyContent: 'center',
-        alignItems:'center',
+        alignItems: 'center',
     },
-    textInput:{
-        padding:10,
+    textInput: {
+        padding: 10,
         margin: 10,
-        width:width-80,
+        width: width - 80,
 
     },
-    buttonStyle:{
-        margin:10,
-        padding:10,
-        borderRadius:20,
+    buttonStyle: {
+        margin: 10,
+        padding: 10,
+        borderRadius: 20,
         backgroundColor: '#ff8295',
         alignItems: 'center'
 
