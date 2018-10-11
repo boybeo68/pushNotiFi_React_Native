@@ -45,7 +45,7 @@ export default class App extends React.Component {
             notifi
         });
     };
-
+// todo push notifi từ server Expo
     senNotifi = (token = this.state.token, title = this.state.title, body = this.state.body) => {
         return fetch('https://exp.host/--/api/v2/push/send',{
             body: JSON.stringify({
@@ -61,6 +61,7 @@ export default class App extends React.Component {
             method :'POST'
         })
     };
+    // todo push notifi nocal ngay lập tức
     sendNotiLocal = () =>{
         Expo.Notifications.presentLocalNotificationAsync({
             title:'dữ liệu local title',
@@ -68,6 +69,7 @@ export default class App extends React.Component {
             data: {name : "Tùng béo đã gửi thành công từ local"}
         })
     };
+    // todo push notifi local sau 1 khoảng thời gian
     sendNotifiSchedule = () => {
         Notifications.scheduleLocalNotificationAsync({
             title:'Thông báo ăn cơm',
